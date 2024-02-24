@@ -12,6 +12,7 @@ type Questions struct {
 	Question     string   `json:"question"`
 	Answers      []string `json:"answers"`
 	Right_answer int      `json:"right_answer"`
+	Tip          string   `json:"tip"`
 }
 
 type Topics struct {
@@ -39,6 +40,7 @@ func GetQuiz(filename string) (Quiz, error) {
 	)
 
 	scanner := bufio.NewScanner(file)
+
 	id := 1
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -58,31 +60,37 @@ func GetQuiz(filename string) (Quiz, error) {
 			}
 		} else if strings.HasPrefix(line, "Pergunta: ") {
 			if currentTopic != nil {
-				ques := Questions{}
+				var ques Questions
 				ques.Question = line[len("Pergunta: "):]
-	
+
 				for i := 0; i < 3; i++ {
 					scanner.Scan()
 					resp := scanner.Text()
 					ques.Answers = append(ques.Answers, resp)
 				}
-	
+
 				scanner.Scan()
 				respCorreta, err := strconv.Atoi(scanner.Text())
-	
+
 				if err != nil {
 					return Quiz{}, fmt.Errorf("erro ao converter resposta correta para número: %v", err)
 				}
 				ques.Right_answer = respCorreta - 1
+
 				currentTopic.Questions = append(currentTopic.Questions, ques)
 			}
+		} else if strings.HasPrefix(line, "Dica: ") {
+			if currentTopic != nil && len(currentTopic.Questions) > 0 {
+				tip := line[len("Dica: "):]
+				currentTopic.Questions[len(currentTopic.Questions)-1].Tip = tip
+			}
 		}
+		
 	}
-	
+
 	if currentTopic != nil {
 		quiz.Topics = append(quiz.Topics, *currentTopic)
 	}
-	
 
 	if err := scanner.Err(); err != nil {
 		return Quiz{}, err
