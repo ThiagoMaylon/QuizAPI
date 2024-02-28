@@ -8,6 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Middleware para configurar o cabeçalho Access-Control-Allow-Origin
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Next()
+	}
+}
+
 func GetAll(ctx *gin.Context) {
 	quiz, err := quiz.GetQuiz("quiz.txt")
 
